@@ -1,0 +1,36 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    name: go ${{ matrix.go }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ['1.22', 'stable']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+          cache: true
+      - name: gofmt
+        run: test -z "$(gofmt -l .)" || (gofmt -d . && exit 1)
+      - name: go vet
+        run: go vet ./... && go vet -tags live ./...
+      - name: staticcheck
+        # The tool needs a recent Go; the oldest supported Go still vets, builds and tests below.
+        if: matrix.go == 'stable'
+        run: |
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          "$(go env GOPATH)/bin/staticcheck" ./...
+          "$(go env GOPATH)/bin/staticcheck" -tags live ./...
+      - name: tests (race), including the conformance cases
+        run: go test -race -count=1 -cover ./...
+      - name: build
+        run: go build ./...
