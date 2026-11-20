@@ -211,12 +211,13 @@ func (r *RunResult) StopReason() string { return r.Run.StopReason }
 // UnitsCharged is run.units_charged.
 func (r *RunResult) UnitsCharged() float64 { return r.Run.UnitsCharged }
 
-// Usable is true when the result is complete, summary.status is "completed" or "bounded", and
-// summary.within_scope_passed is true. A bounded or partial run can leave records uncollected:
-// StopReason says why.
+// Usable is true when the result is complete, summary.status is "completed" or "bounded",
+// summary.within_scope_passed is true and the run finished (an aborted run is never usable). A
+// bounded or partial run can leave records uncollected: StopReason says why.
 func (r *RunResult) Usable() bool {
 	return r.Complete && r.Summary.WithinScopePassed &&
-		(r.Summary.Status == "completed" || r.Summary.Status == "bounded")
+		(r.Summary.Status == "completed" || r.Summary.Status == "bounded") &&
+		(r.Run.Status == "" || r.Run.Status == RunFinished)
 }
 
 func (r *RunResult) pollDelay() time.Duration {
