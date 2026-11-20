@@ -14,11 +14,11 @@ jobs:
       matrix:
         go: ['1.22', 'stable']
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version: ${{ matrix.go }}
-          cache: true
+          cache: false
       - name: gofmt
         run: test -z "$(gofmt -l .)" || (gofmt -d . && exit 1)
       - name: go vet
