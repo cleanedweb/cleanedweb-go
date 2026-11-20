@@ -4,8 +4,7 @@ Go client for [CleanedWeb](https://cleanedweb.com/?utm_source=github&utm_medium=
 collections (listings, products, jobs, articles, profiles) into maintained REST APIs that return structured records.
 Standard library only, context everywhere, typed errors that work with `errors.As` and `errors.Is`.
 
-> **Pre-release.** No version is tagged yet, so `go get` resolves a pseudo-version of `main`. The API of this package
-> may change before `v1.0.0`.
+> **Pre-1.0.** The first tag is `v0.1.0`. The API of this package may change before `v1.0.0`.
 
 **Pricing:** 5,000 records free once, then prepaid credit from $1 per 1,000 records delivered, no subscription.
 Runs are charged per record delivered.
@@ -160,7 +159,7 @@ with `scripts/sync-conformance.sh` (sibling checkout) or `scripts/sync-conforman
 
 ## Releasing
 
-Versions are Git tags of the form `vX.Y.Z` on `main` (Go modules use them directly). Nothing is tagged yet.
+Versions are Git tags of the form `vX.Y.Z` on `main` (Go modules use them directly). The first is `v0.1.0`.
 
 1. Update `Version` in `version.go`, and make sure CI is green on `main`.
 2. Refresh the vendored cases (`scripts/sync-conformance.sh --remote --ref <spec tag>`) and re-run `go test -race ./...`.
