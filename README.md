@@ -108,11 +108,9 @@ if err := it.Err(); err != nil { /* ... */ }
 
 ### Scopes
 
-`run` starts runs and reads runs, items and catalog results; `read` lists schedules and reads source versions, contracts and
-connection details; `results` reads run results (`Runs.Result`, `Sources.GetRunResult`). A source run that outlives its wait
-(`Sources.Run` after a `202`) is read from `/v1/runs/{id}/result`, which needs `results`: create the key with `run` and
-`results`. With only `run`, the call returns a permission error while the run goes on (and is charged); read it with
-`Runs.Get` and `Runs.Items`.
+`run` starts runs and reads runs, items and results (`Runs.Result`, `Sources.GetRun`, `Sources.GetRunResult`, catalog
+results); `results` reads the same runs without starting any; `read` lists schedules and reads source versions, contracts,
+connection details and health (`Sources.Health`).
 
 ## Errors
 
