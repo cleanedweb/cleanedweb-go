@@ -4,9 +4,8 @@ Go client for [CleanedWeb](https://cleanedweb.com/?utm_source=github&utm_medium=
 collections (listings, products, jobs, articles, profiles) into maintained REST APIs that return structured records.
 Standard library only, context everywhere, typed errors that work with `errors.As` and `errors.Is`.
 
-> **Private preview.** This repository is private and nothing is published to the Go module proxy. Until it is public,
-> set `GOPRIVATE=github.com/cleanedweb/*` and use HTTPS credentials (`gh auth setup-git`) to fetch it. The API of this
-> package may change before `v1.0.0`.
+> **Pre-release.** No version is tagged yet, so `go get` resolves a pseudo-version of `main`. The API of this package
+> may change before `v1.0.0`.
 
 **Pricing:** 5,000 records free once, then prepaid credit from $1 per 1,000 records delivered, no subscription.
 Runs are charged per record delivered.
@@ -15,7 +14,6 @@ Runs are charged per record delivered.
 ## Install
 
 ```bash
-export GOPRIVATE=github.com/cleanedweb/*   # while the repository is private
 go get github.com/cleanedweb/cleanedweb-go
 ```
 
@@ -158,10 +156,9 @@ go test -race ./...                       # unit tests and the conformance cases
 go test -tags live -run TestLive -v ./... # live smoke test: no-key catalog reads and two refused calls; runs and charges nothing
 ```
 
-The conformance cases are the language-neutral cases of the private `cleanedweb-openapi` repository (the OpenAPI spec this
-SDK is built from), vendored in `testdata/conformance` because CI cannot read a private repository. Refresh them with
-`scripts/sync-conformance.sh` (sibling checkout) or `scripts/sync-conformance.sh --remote [--ref v0.1.0]` (needs `gh`
-access). `testdata/conformance/SOURCE` records the spec commit they came from.
+The conformance cases are the language-neutral cases of [`cleanedweb-openapi`](https://github.com/cleanedweb/cleanedweb-openapi)
+(the OpenAPI spec this SDK is built from), vendored in `testdata/conformance` so a test run needs no network. Refresh them
+with `scripts/sync-conformance.sh` (sibling checkout) or `scripts/sync-conformance.sh --remote [--ref v0.1.0]` (needs `gh`). `testdata/conformance/SOURCE` records the spec commit they came from.
 
 ## Releasing
 
@@ -170,7 +167,7 @@ Versions are Git tags of the form `vX.Y.Z` on `main` (Go modules use them direct
 1. Update `Version` in `version.go`, and make sure CI is green on `main`.
 2. Refresh the vendored cases (`scripts/sync-conformance.sh --remote --ref <spec tag>`) and re-run `go test -race ./...`.
 3. `git tag -a vX.Y.Z -m "cleanedweb-go vX.Y.Z" && git push origin vX.Y.Z`. Do not move or delete a pushed tag; fix forward with a new patch version.
-4. While the repository is private, consumers fetch it with `GOPRIVATE`. Making it public and listing it on pkg.go.dev is a separate step.
+4. The module proxy and pkg.go.dev pick up the tag on the first `go get` of that version.
 
 Pre-1.0, a breaking change bumps the minor version. A module major `v2` or later needs a `/v2` module path.
 

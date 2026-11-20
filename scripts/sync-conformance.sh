@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 # Copy the language-neutral conformance cases of cleanedweb-openapi into testdata/conformance.
 #
-# cleanedweb-openapi is private, so CI cannot fetch it; the cases are vendored and this script
-# refreshes them. By default it reads a sibling checkout (../cleanedweb-openapi). Set
-# CLEANEDWEB_OPENAPI_DIR to use another checkout, or pass --remote to clone it with the gh CLI
-# (needs access to the private repository). Pass --ref <branch|tag|sha> with --remote.
+# The cases are vendored so a test run needs no network; this script refreshes them. By default it
+# reads a sibling checkout (../cleanedweb-openapi). Set CLEANEDWEB_OPENAPI_DIR to use another
+# checkout, or pass --remote to clone it with the gh CLI. Pass --ref <branch|tag|sha> with --remote.
 #
 #   scripts/sync-conformance.sh                  # from ../cleanedweb-openapi
 #   scripts/sync-conformance.sh --remote         # gh repo clone cleanedweb/cleanedweb-openapi (main)
