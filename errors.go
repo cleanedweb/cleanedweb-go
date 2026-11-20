@@ -298,6 +298,9 @@ func detailAndCode(body any) (detail any, code, message string) {
 	if isMap {
 		if d, ok := m["detail"]; ok {
 			detail = d
+		} else if e, ok := m["error"].(map[string]any); ok {
+			// /filters answers {"error": {"code", "message", "details"}} (cleanedweb-openapi FINDINGS 12).
+			detail = e
 		} else {
 			detail = m
 		}

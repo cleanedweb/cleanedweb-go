@@ -202,6 +202,21 @@ func TestFiltersSendsAJSONObject(t *testing.T) {
 	}
 }
 
+func TestFiltersUnavailableKeepsTheErrorEnvelopeCode(t *testing.T) {
+	// The live /filters 404 wraps its error in "error", not "detail" (cleanedweb-openapi FINDINGS 12).
+	c, _ := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		writeJSON(w, 404, map[string]any{"error": map[string]any{"code": "category_filters_unavailable",
+			"details": map[string]any{"reason": "no_category_filters_evidence"},
+			"message": "This API has no category filters to describe."}})
+	})
+	_, err := c.Catalog.Filters(context.Background(), apiID, endpointID, nil)
+	var apiErr *APIError
+	if !errors.As(err, &apiErr) || apiErr.Code != "category_filters_unavailable" ||
+		apiErr.Message != "This API has no category filters to describe." || !errors.Is(err, ErrNotFound) {
+		t.Fatalf("err %#v", err)
+	}
+}
+
 func TestRunsItemsFollowsCursorsWithNulls(t *testing.T) {
 	var queries []string
 	c, _ := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
