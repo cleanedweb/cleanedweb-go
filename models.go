@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -314,9 +315,43 @@ type RunList struct {
 
 // CatalogSite is the website a catalog API reads.
 type CatalogSite struct {
-	Name        string `json:"name"`
-	Domain      string `json:"domain"`
-	Description string `json:"description"`
+	Name   string `json:"name"`
+	Domain string `json:"domain"`
+	// Aliases are other hosts of the site, lowercase, "www." kept, the domain never repeated.
+	// Empty when the server is older and does not send them.
+	Aliases     []string `json:"aliases"`
+	Description string   `json:"description"`
+}
+
+// UnmarshalJSON reads the site and keeps only the non-empty string aliases, so a missing, null or
+// odd "aliases" value never fails a catalog read.
+func (s *CatalogSite) UnmarshalJSON(data []byte) error {
+	var raw struct {
+		Name        string `json:"name"`
+		Domain      string `json:"domain"`
+		Aliases     []any  `json:"aliases"`
+		Description string `json:"description"`
+	}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		// A non-array "aliases" value: read the rest and drop the aliases.
+		var rest struct {
+			Name        string `json:"name"`
+			Domain      string `json:"domain"`
+			Description string `json:"description"`
+		}
+		if err2 := json.Unmarshal(data, &rest); err2 != nil {
+			return err
+		}
+		*s = CatalogSite{Name: rest.Name, Domain: rest.Domain, Description: rest.Description}
+		return nil
+	}
+	*s = CatalogSite{Name: raw.Name, Domain: raw.Domain, Description: raw.Description}
+	for _, a := range raw.Aliases {
+		if h, ok := a.(string); ok && h != "" {
+			s.Aliases = append(s.Aliases, h)
+		}
+	}
+	return nil
 }
 
 // CatalogEndpoint summarises one endpoint of a catalog API.
@@ -411,9 +446,12 @@ func newEndpointContract(o Object) EndpointContract {
 	}
 }
 
+// normalizeSite turns "https://www.Example.com./a?b" into "example.com"; a bare name stays a
+// lowercase name. It drops the scheme, credentials, port, path, query, fragment, a leading "www."
+// and a trailing dot.
 func normalizeSite(v string) string {
 	t := strings.ToLower(strings.TrimSpace(v))
-	if i := strings.Index(t, "://"); i >= 0 {
+	if i := strings.Index(t, "://"); i >= 0 && schemePrefix.MatchString(t[:i+3]) {
 		t = t[i+3:]
 	}
 	for _, sep := range []string{"/", "?", "#"} {
@@ -427,5 +465,8 @@ func normalizeSite(v string) string {
 	if i := strings.Index(t, ":"); i >= 0 {
 		t = t[:i]
 	}
+	t = strings.Trim(t, ".")
 	return strings.TrimPrefix(t, "www.")
 }
+
+var schemePrefix = regexp.MustCompile(`^[a-z][a-z0-9+.\-]*://$`)

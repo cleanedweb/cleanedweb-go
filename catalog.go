@@ -306,17 +306,68 @@ func hasFields(known, wanted []string) bool {
 	return true
 }
 
+// matchesSite reports whether api belongs to site (a domain, a full URL, a name or a part of one).
+// A host-shaped site (it has a dot) matches the API's domain and every alias on label boundaries:
+// equal, or one a subdomain of the other, so "seek.com.au" finds an API whose domain is
+// "au.seek.com" when "www.seek.com.au" is an alias, and never "notseek.com.au". The site name and
+// the API name match it only as a whole host. A name without a dot ("github") is a substring of a
+// host, the site name or the API name.
 func matchesSite(api CatalogAPI, site string) bool {
 	needle := normalizeSite(site)
 	if needle == "" {
 		return true
 	}
-	for _, h := range []string{normalizeSite(api.Site.Domain), strings.ToLower(api.Site.Name), strings.ToLower(api.Name)} {
-		if h != "" && strings.Contains(h, needle) {
+	var hosts []string
+	for _, h := range append([]string{api.Site.Domain}, api.Site.Aliases...) {
+		if n := normalizeSite(h); n != "" {
+			hosts = append(hosts, n)
+		}
+	}
+	var names []string
+	for _, n := range []string{strings.ToLower(api.Site.Name), strings.ToLower(api.Name)} {
+		if n != "" {
+			names = append(names, n)
+		}
+	}
+	if strings.Contains(needle, ".") && !strings.ContainsAny(needle, " \t\r\n") {
+		for _, h := range hosts {
+			if needle == h || strings.HasSuffix(h, "."+needle) || strings.HasSuffix(needle, "."+h) {
+				return true
+			}
+		}
+		for _, n := range names {
+			if namesHost(needle, n) {
+				return true
+			}
+		}
+		return false
+	}
+	for _, t := range append(hosts, names...) {
+		if strings.Contains(t, needle) {
 			return true
 		}
 	}
 	return false
+}
+
+// namesHost reports whether needle appears in a free-text name delimited as a host, so
+// "seek.com.au" is not found inside "notseek.com.au".
+func namesHost(needle, text string) bool {
+	isHostByte := func(c byte, extra string) bool {
+		return c >= 'a' && c <= 'z' || c >= '0' && c <= '9' || strings.IndexByte(extra, c) >= 0
+	}
+	for from := 0; ; {
+		i := strings.Index(text[from:], needle)
+		if i < 0 {
+			return false
+		}
+		i += from
+		end := i + len(needle)
+		if (i == 0 || !isHostByte(text[i-1], ".-")) && (end == len(text) || !isHostByte(text[end], "-")) {
+			return true
+		}
+		from = i + 1
+	}
 }
 
 // RunParams are the options of Catalog.Run.

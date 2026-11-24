@@ -186,6 +186,57 @@ func TestFindFiltersBySiteAndFields(t *testing.T) {
 	}
 }
 
+func TestFindMatchesSiteAliasesOnHostBoundaries(t *testing.T) {
+	seek := catalogItem("seek1", "Seek Python Jobs", "au.seek.com")
+	seek["site"] = map[string]any{"name": "Seek", "domain": "au.seek.com", "aliases": []any{"www.seek.com.au"}}
+	notseek := catalogItem("notseek1", "Notseek Listings", "notseek.com.au")
+	notseek["site"] = map[string]any{"name": "Notseek", "domain": "notseek.com.au", "aliases": nil}
+	odd := catalogItem("odd1", "Blocket", "www.blocket.se")
+	odd["site"] = map[string]any{"name": "Blocket", "domain": "www.blocket.se", "aliases": []any{3, "", "blocket.example"}}
+	c, _ := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/v1/catalog/public/apis":
+			writeJSON(w, 200, map[string]any{"items": []any{seek, notseek, odd, catalogItem("gh1", "GitHub", "github.com")}})
+		case "/catalog/index.json":
+			writeJSON(w, 200, map[string]any{"apis": []any{}})
+		default:
+			t.Errorf("unexpected %s", r.URL.Path)
+			http.NotFound(w, r)
+		}
+	}, WithAPIKey(""))
+	find := func(site string) string {
+		apis, err := c.Catalog.Find(context.Background(), &FindParams{Site: site})
+		if err != nil {
+			t.Fatalf("find %q: %v", site, err)
+		}
+		ids := []string{}
+		for _, a := range apis {
+			ids = append(ids, a.APIID)
+		}
+		return strings.Join(ids, ",")
+	}
+	for _, site := range []string{"seek.com.au", "www.seek.com.au", "https://www.seek.com.au/jobs", "HTTPS://WWW.SEEK.COM.AU./jobs?q=1", "au.seek.com", "seek.com"} {
+		if got := find(site); got != "seek1" {
+			t.Errorf("site %q found %q, want seek1", site, got)
+		}
+	}
+	if got := find("notseek.com.au"); got != "notseek1" {
+		t.Errorf("notseek.com.au found %q", got)
+	}
+	if got := find("seek.com.au.evil.example"); got != "" {
+		t.Errorf("evil host found %q", got)
+	}
+	if got := find("seek"); got != "seek1,notseek1" {
+		t.Errorf("dotless seek found %q", got)
+	}
+	if got := find("github.com"); got != "gh1" {
+		t.Errorf("site without aliases found %q", got)
+	}
+	if got := find("blocket.example"); got != "odd1" {
+		t.Errorf("odd aliases found %q", got)
+	}
+}
+
 func TestFiltersSendsAJSONObject(t *testing.T) {
 	c, _ := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()
