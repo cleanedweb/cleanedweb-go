@@ -1,4 +1,8 @@
+<p align="center"><img src="https://cleanedweb.com/assets/logo.png" width="72" alt="CleanedWeb"></p>
+
 # cleanedweb-go
+
+[![Go Reference](https://pkg.go.dev/badge/github.com/cleanedweb/cleanedweb-go.svg)](https://pkg.go.dev/github.com/cleanedweb/cleanedweb-go) [![CI](https://github.com/cleanedweb/cleanedweb-go/actions/workflows/ci.yml/badge.svg)](https://github.com/cleanedweb/cleanedweb-go/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/cleanedweb/cleanedweb-go/blob/main/LICENSE)
 
 Go client for [CleanedWeb](https://cleanedweb.com/?utm_source=github&utm_medium=cleanedweb-go), which turns public website
 collections (listings, products, jobs, articles, profiles) into maintained REST APIs that return structured records.
