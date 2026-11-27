@@ -4,9 +4,20 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/cleanedweb/cleanedweb-go.svg)](https://pkg.go.dev/github.com/cleanedweb/cleanedweb-go) [![CI](https://github.com/cleanedweb/cleanedweb-go/actions/workflows/ci.yml/badge.svg)](https://github.com/cleanedweb/cleanedweb-go/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/cleanedweb/cleanedweb-go/blob/main/LICENSE)
 
-Go client for [CleanedWeb](https://cleanedweb.com/?utm_source=github&utm_medium=cleanedweb-go), which turns public website
-collections (listings, products, jobs, articles, profiles) into maintained REST APIs that return structured records.
-Standard library only, context everywhere, typed errors that work with `errors.As` and `errors.Is`.
+<p align="center"><img src="https://raw.githubusercontent.com/cleanedweb/cleanedweb-go/main/docs/demo.gif" width="760" alt="Terminal: a short Go program finds the Steam Most Played Games API and prints five live records"></p>
+<p align="center"><sub>A live run: the five most played Steam games right now, as five records.</sub></p>
+
+**Scrapers break whenever a site changes its pages.** CleanedWeb is a catalog of maintained REST APIs
+for public websites (listings, products, jobs, articles, profiles): you call an API and get structured
+records with known fields. When a site changes, CleanedWeb rebuilds its API.
+This is the Go client for [CleanedWeb](https://cleanedweb.com/?utm_source=github&utm_medium=cleanedweb-go).
+
+- Find an API for a site in the public catalog, read its contract, run it: `Find`, `Get`, `Run`.
+- Handles the parts that are easy to get wrong: the idempotency key, runs that outlive one request,
+  and recovery after a lost response.
+- Typed errors that work with `errors.As` and `errors.Is`.
+- Standard library only, `context.Context` on every call.
+- Large integers in records keep their value (`json.Number`).
 
 > **Pre-1.0.** The first tag is `v0.1.0`. The API of this package may change before `v1.0.0`.
 
